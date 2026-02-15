@@ -508,7 +508,15 @@ fn build(out_dir: &Path, ffmpeg_version: &str) -> io::Result<PathBuf> {
     // Command's path is not relative to command's current_dir
     let configure_path = source_dir.join("configure");
     assert!(configure_path.exists());
-    let mut configure = Command::new(&configure_path);
+    let mut configure = if cfg!(windows) {
+        let mut cmd = Command::new("sh");
+        cmd.current_dir(&source_dir).arg(&configure_path);
+        cmd
+    } else {
+        let mut cmd = Command::new(&configure_path);
+        cmd.current_dir(&source_dir);
+        cmd
+    };
     configure.current_dir(&source_dir);
 
     configure.arg(format!("--prefix={}", install_dir.to_string_lossy()));
