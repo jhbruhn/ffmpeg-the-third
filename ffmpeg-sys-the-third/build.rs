@@ -534,6 +534,16 @@ fn build(out_dir: &Path, ffmpeg_version: &str) -> io::Result<PathBuf> {
         ));
     }
 
+    // MSVC target: compile FFmpeg with clang-cl so the static libs contain
+    // only MSVC-ABI COFF objects
+    if cfg!(target_env = "msvc") {
+        configure.arg("--toolchain=msvc");
+        configure.arg("--target-os=win64");
+        configure.arg("--arch=x86_64");
+        configure.env("CC", "clang-cl");
+        configure.arg("--ar=ar-lib llvm-lib");
+    }
+
     // control debug build
     if env::var("DEBUG").is_ok() {
         configure.arg("--enable-debug");
